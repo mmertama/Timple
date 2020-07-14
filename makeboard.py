@@ -86,7 +86,7 @@ def main():
     ring = Ring(250, 250, 150, ball_rad, 20)
     starts = []
 
-    colors = ["#FF0000", "#00FF00", "#0000FF", "#00FFFF"]
+    colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"]
 
     for a in range(0, 4):
         starts.append(Start(250, 250, a * (math.pi / 2), 200, 100, ball_rad, 4, math.pi / 2, colors[a]))
@@ -101,7 +101,7 @@ def main():
                            'starts': [s.data() for s in starts],
                            'goals': [g.data() for g in goals]})
 
-    with open("data.json", 'w') as f:
+    with open("gui/data.json", 'w') as f:
         f.write(data)
 
 

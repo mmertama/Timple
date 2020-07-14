@@ -10,7 +10,20 @@
 </head>
 <body>
     <script src="/telex.js"></script>
-     <canvas id="canvas" width=700 height=700>
+    <div>
+        <span style="color:red;">&#x2B24;</span>
+        <input type="text" id="red_name" name="name" placeholder="player red">
+        <span style="color:green;">&#x2B24;</span>
+        <input type="text" id="green_name" name="name" placeholder="player green">
+        <span style="color:blue;">&#x2B24;</span>
+        <input type="text" id="blue_name" name="name" placeholder="player blue">
+        <span style="color:yellow;">&#x2B24;</span>
+        <input type="text" id="yellow_name" name="name" placeholder="player yellow">
+    </div>
+    <div id="instructions"></div>
+    <div><button id="start" type="button">Start!</button></div>
+    <div><button id="dice" type="button" style="font-size:48px;" hidden>&#9860;</button></div>
+    <canvas id="canvas" width=700 height=700>
     </canvas>
 </body>
 </html>

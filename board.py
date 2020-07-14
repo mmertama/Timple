@@ -2,6 +2,7 @@ import os
 import sys
 import math
 import json
+import random
 import Telex
 
 FEATHER = 10
@@ -92,6 +93,7 @@ class Game:
         self.starts = [Home(s) for s in data['starts']]
         self.goals = [Home(s) for s in data['goals']]
         self.selected = None
+        self.state = "START"
 
     def draw(self, frame_composer):
         self.ring.draw(frame_composer)
@@ -101,6 +103,8 @@ class Game:
             g.draw(frame_composer)
 
     def clicked(self, x, y):
+ #       if self.state == "START":
+ #           return
         if self.swap(self.ring.clicked(x, y)):
             return True
         for s in self.starts:
@@ -120,6 +124,9 @@ class Game:
         selected.select(True)
         return True
 
+    def dice_thrown(self, value):
+        print(value)
+
 
 def main():
     # Telex.set_debug()
@@ -129,8 +136,10 @@ def main():
     ui = Telex.Ui(ui_file)
 
     canvas = Telex.CanvasElement(ui, "canvas")
+    dice = Telex.Element(ui, "dice")
+    start = Telex.Element(ui, "start")
 
-    with open("data.json", 'r') as f:
+    with open("gui/data.json", 'r') as f:
         data = json.load(f)
 
     game = Game(data)
@@ -151,6 +160,25 @@ def main():
         canvas.draw_frame(fc)
 
     canvas.subscribe('click', on_click, ["clientX", "clientY"])
+
+    def on_start(_):
+        colors = ['red', 'green', 'blue', 'yellow']
+        name_elements = {color: Telex.Element(ui, color + "_name") for color in colors}
+        names = {color: name_elements[color].values()['value'] for color in colors}
+        print(names)
+        for k in name_elements:
+            name_elements[k].set_attribute('disabled')
+        start.set_attribute('hidden')
+        dice.remove_attribute('hidden')
+
+    start.subscribe('click', on_start)
+
+    def throw_dice(_):
+        number = random.randint(0, 5)
+        dice.set_html('&#' + str(9856 + number) + ';')
+        game.dice_thrown(number + 1)
+
+    dice.subscribe('click', throw_dice)
 
     ui.run()
 
