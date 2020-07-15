@@ -37,16 +37,18 @@ class Ring:
 
 
 class Home:
-    def __init__(self):
-        self.slots =[]
+    def __init__(self, color):
+        self.slots = []
+        self.color = color
 
     def data(self):
-        return {'slots': [s.data() for s in self.slots]}
+        return {'color': self.color,
+                'slots': [s.data() for s in self.slots]}
 
 
 class Start(Home):
     def __init__(self, x, y, angle, distance, width, size, count, direction, color):
-        self.slots = []
+        super().__init__(color)
         px = math.sin(angle) * distance
         py = math.cos(angle) * distance
 
@@ -63,8 +65,8 @@ class Start(Home):
 
 
 class Goal(Home):
-    def __init__(self, x, y, angle, distance, width, size, count, direction):
-        self.slots = []
+    def __init__(self, x, y, angle, distance, width, size, count, direction, color):
+        super().__init__(color)
         px = math.sin(angle) * distance
         py = math.cos(angle) * distance
 
@@ -86,14 +88,14 @@ def main():
     ring = Ring(250, 250, 150, ball_rad, 20)
     starts = []
 
-    colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"]
+    colors = ["red", "green", "blue", "yellow"]
 
     for a in range(0, 4):
         starts.append(Start(250, 250, a * (math.pi / 2), 200, 100, ball_rad, 4, math.pi / 2, colors[a]))
 
     goals = []
     for a in range(0, 4):
-        goals.append(Goal(250, 250, a * (math.pi / 2), 20, 100, ball_rad, 4, 0))
+        goals.append(Goal(250, 250, a * (math.pi / 2), 20, 100, ball_rad, 4, 0, colors[a]))
 
     data = encoder.encode({'width': 500,
                            'height': 500,

@@ -129,120 +129,125 @@
  },
  "starts": [
   {
+   "color": "red",
    "slots": [
     {
      "x": 212.5,
      "y": 450.0,
      "size": 6,
-     "color": "#FF0000"
+     "color": "red"
     },
     {
      "x": 237.5,
      "y": 450.0,
      "size": 6,
-     "color": "#FF0000"
+     "color": "red"
     },
     {
      "x": 262.5,
      "y": 450.0,
      "size": 6,
-     "color": "#FF0000"
+     "color": "red"
     },
     {
      "x": 287.5,
      "y": 450.0,
      "size": 6,
-     "color": "#FF0000"
+     "color": "red"
     }
    ]
   },
   {
+   "color": "green",
    "slots": [
     {
      "x": 450.0,
      "y": 287.5,
      "size": 6,
-     "color": "#00FF00"
+     "color": "green"
     },
     {
      "x": 450.0,
      "y": 262.5,
      "size": 6,
-     "color": "#00FF00"
+     "color": "green"
     },
     {
      "x": 450.0,
      "y": 237.5,
      "size": 6,
-     "color": "#00FF00"
+     "color": "green"
     },
     {
      "x": 450.0,
      "y": 212.5,
      "size": 6,
-     "color": "#00FF00"
+     "color": "green"
     }
    ]
   },
   {
+   "color": "blue",
    "slots": [
     {
      "x": 287.5,
      "y": 50.00000000000001,
      "size": 6,
-     "color": "#0000FF"
+     "color": "blue"
     },
     {
      "x": 262.5,
      "y": 50.0,
      "size": 6,
-     "color": "#0000FF"
+     "color": "blue"
     },
     {
      "x": 237.5,
      "y": 49.99999999999999,
      "size": 6,
-     "color": "#0000FF"
+     "color": "blue"
     },
     {
      "x": 212.5,
      "y": 49.999999999999986,
      "size": 6,
-     "color": "#0000FF"
+     "color": "blue"
     }
    ]
   },
   {
+   "color": "yellow",
    "slots": [
     {
      "x": 50.00000000000001,
      "y": 212.49999999999997,
      "size": 6,
-     "color": "#FFFF00"
+     "color": "yellow"
     },
     {
      "x": 50.0,
      "y": 237.49999999999997,
      "size": 6,
-     "color": "#FFFF00"
+     "color": "yellow"
     },
     {
      "x": 49.99999999999999,
      "y": 262.5,
      "size": 6,
-     "color": "#FFFF00"
+     "color": "yellow"
     },
     {
      "x": 49.999999999999986,
      "y": 287.5,
      "size": 6,
-     "color": "#FFFF00"
+     "color": "yellow"
     }
    ]
   }
  ],
  "goals": [
   {
+   "color": "red",
    "slots": [
     {
      "x": 250.0,
@@ -271,6 +276,7 @@
    ]
   },
   {
+   "color": "green",
    "slots": [
     {
      "x": 270.0,
@@ -299,6 +305,7 @@
    ]
   },
   {
+   "color": "blue",
    "slots": [
     {
      "x": 250.0,
@@ -327,6 +334,7 @@
    ]
   },
   {
+   "color": "yellow",
    "slots": [
     {
      "x": 230.0,
