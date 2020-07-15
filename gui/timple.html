@@ -7,6 +7,19 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Timple</title>
+    <style>
+        .dice_button {
+          background-color: black;
+          border: none;
+          color: white;
+          padding: 15px 32px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 16px;
+          visibility: hidden;
+        }
+    </style>
 </head>
 <body>
     <script src="/telex.js"></script>
@@ -22,7 +35,7 @@
     </div>
     <div id="instructions"></div>
     <div><button id="start" type="button">Start!</button></div>
-    <div><button id="dice" type="button" style="font-size:48px;" hidden>&#9860;</button></div>
+    <div><button id="dice" class="dice_button" type="button" style="font-size:48px;">&#9860;</button></div>
     <canvas id="canvas" width=700 height=700>
     </canvas>
 </body>

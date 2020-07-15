@@ -86,7 +86,7 @@ class Home:
 
 
 class Game:
-    def __init__(self, data):
+    def __init__(self, data, help):
         self.width = data['width']
         self.height = data['height']
         self.ring = Ring(data['ring'])
@@ -94,6 +94,10 @@ class Game:
         self.goals = [Home(s) for s in data['goals']]
         self.selected = None
         self.state = "START"
+        self.player_names = {}
+        self.players = []
+        self.player_turn = 0
+        self.help = help
 
     def draw(self, frame_composer):
         self.ring.draw(frame_composer)
@@ -103,8 +107,8 @@ class Game:
             g.draw(frame_composer)
 
     def clicked(self, x, y):
- #       if self.state == "START":
- #           return
+        if self.state != "PLAY":
+            return
         if self.swap(self.ring.clicked(x, y)):
             return True
         for s in self.starts:
@@ -124,6 +128,18 @@ class Game:
         selected.select(True)
         return True
 
+    def set_players(self, players):
+        self.player_names = players
+        self.players = [p for p in players if players[p]]
+        if len(self.players) == 0:
+            return
+        self.state = "INIT"
+        self.player_turn = 0
+        self.help("Throw the dice to see who will be the first.")
+
+    def current_color(self):
+        return self.players[self.player_turn] if self.player_turn < len(self.players) else 'white'
+
     def dice_thrown(self, value):
         print(value)
 
@@ -138,11 +154,12 @@ def main():
     canvas = Telex.CanvasElement(ui, "canvas")
     dice = Telex.Element(ui, "dice")
     start = Telex.Element(ui, "start")
+    instructions = Telex.Element(ui, "instructions")
 
     with open("gui/data.json", 'r') as f:
         data = json.load(f)
 
-    game = Game(data)
+    game = Game(data, lambda string: instructions.set_html(string))
 
     frame_composer = Telex.FrameComposer()
 
@@ -165,11 +182,16 @@ def main():
         colors = ['red', 'green', 'blue', 'yellow']
         name_elements = {color: Telex.Element(ui, color + "_name") for color in colors}
         names = {color: name_elements[color].values()['value'] for color in colors}
-        print(names)
+        game.set_players(names)
+        if game.state == "START":
+            game.help("Set player names")
+            return
+        dice.set_style('background-color', game.current_color())
         for k in name_elements:
             name_elements[k].set_attribute('disabled')
         start.set_attribute('hidden')
-        dice.remove_attribute('hidden')
+        dice.set_style('visibility', 'visible')
+        print(dice.styles(['visibility', 'background-color']))
 
     start.subscribe('click', on_start)
 
