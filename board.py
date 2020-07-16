@@ -317,12 +317,14 @@ def main():
     # Set Telex error handler
     ui.on_error(lambda e: sys.exit(e))
 
-    canvasRect = None
-
+    # The mouse coordinates are in window coordinates, thus we need canvas position
+    canvas_rect = None
+    
+    # ...and have a function to read it
     def on_open():
-        nonlocal canvasRect
-        canvasRect = canvas.rect()
-
+        nonlocal canvas_rect
+        canvas_rect = canvas.rect()
+    # ... of which we call upon start
     ui.on_open(on_open)
 
     # Function that wipes previous draw and draw a new frame
@@ -398,12 +400,12 @@ def main():
     # Function that shows targets
     def show_targets(e):
         nonlocal hilit_slot
-        nonlocal canvasRect
+        nonlocal canvas_rect
         # Only if a correct state
         if game.state == game.PICK_MOVER:
             # Get a slot that match with the event coordinates.
-            x = float(e.properties['clientX']) - canvasRect.x
-            y = float(e.properties['clientY']) - canvasRect.y
+            x = float(e.properties['clientX']) - canvas_rect.x
+            y = float(e.properties['clientY']) - canvas_rect.y
             target = game.slot_at(x, y)
             if target and target.peg and target.peg.color == game.current_player().color:
                 slot = game.target_slot(target)
@@ -428,14 +430,14 @@ def main():
     def on_click(event):
         nonlocal next_dice_ok
         nonlocal hilit_slot
-        nonlocal canvasRect
+        nonlocal canvas_rect
         if hilit_slot:
             hilit_slot.hilit = False
         hilit_slot = None
         # Controls if Dice can be thrown
         next_dice_ok = True
-        x = float(event.properties['clientX']) - canvasRect.x
-        y = float(event.properties['clientY']) - canvasRect.y
+        x = float(event.properties['clientX']) - canvas_rect.x
+        y = float(event.properties['clientY']) - canvas_rect.y
         game.clicked(x, y)
         redraw()
 
