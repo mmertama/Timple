@@ -10,9 +10,9 @@ class Slot:
         self.color = color
 
     def data(self):
-        return {'x': self.x,
-                'y': self.y,
-                'size': self.size,
+        return {'x': int(self.x),
+                'y': int(self.y),
+                'size': int(self.size),
                 'color': self.color}
 
 
@@ -37,18 +37,20 @@ class Ring:
 
 
 class Home:
-    def __init__(self, color):
+    def __init__(self, color, entry):
         self.slots = []
         self.color = color
+        self.entry = entry
 
     def data(self):
         return {'color': self.color,
+                'entry': int(self.entry),
                 'slots': [s.data() for s in self.slots]}
 
 
 class Start(Home):
-    def __init__(self, x, y, angle, distance, width, size, count, direction, color):
-        super().__init__(color)
+    def __init__(self, x, y, angle, distance, width, size, count, direction, color, entry):
+        super().__init__(color, entry)
         px = math.sin(angle) * distance
         py = math.cos(angle) * distance
 
@@ -65,8 +67,8 @@ class Start(Home):
 
 
 class Goal(Home):
-    def __init__(self, x, y, angle, distance, width, size, count, direction, color):
-        super().__init__(color)
+    def __init__(self, x, y, angle, distance, width, size, count, direction, color, entry):
+        super().__init__(color, entry)
         px = math.sin(angle) * distance
         py = math.cos(angle) * distance
 
@@ -85,17 +87,25 @@ class Goal(Home):
 def main():
     encoder = json.JSONEncoder(indent=1)
     ball_rad = 6
-    ring = Ring(250, 250, 150, ball_rad, 20)
+    ring_count = 20
+    ring = Ring(250, 250, 150, ball_rad, ring_count)
     starts = []
 
     colors = ["red", "green", "blue", "yellow"]
+    entry = 0
 
     for a in range(0, 4):
-        starts.append(Start(250, 250, a * (math.pi / 2), 200, 100, ball_rad, 4, math.pi / 2, colors[a]))
+        starts.append(Start(250, 250,
+                            a * (math.pi / 2)
+                            , 200, 100, ball_rad, 4, math.pi / 2, colors[a], entry))
+        entry += ring_count / 4
 
     goals = []
+    entry = 1
     for a in range(0, 4):
-        goals.append(Goal(250, 250, a * (math.pi / 2), 20, 100, ball_rad, 4, 0, colors[a]))
+        goals.append(Goal(250, 250,
+                          a * (math.pi / 2), 20, 100, ball_rad, 4, 0, colors[a], entry))
+        entry += ring_count / 4
 
     data = encoder.encode({'width': 500,
                            'height': 500,
