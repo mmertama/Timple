@@ -252,7 +252,7 @@
  "goals": [
   {
    "color": "red",
-   "entry": 1,
+   "entry": 20,
    "slots": [
     {
      "x": 250,
@@ -282,7 +282,7 @@
   },
   {
    "color": "green",
-   "entry": 6,
+   "entry": 25,
    "slots": [
     {
      "x": 270,
@@ -312,7 +312,7 @@
   },
   {
    "color": "blue",
-   "entry": 11,
+   "entry": 30,
    "slots": [
     {
      "x": 250,
@@ -342,7 +342,7 @@
   },
   {
    "color": "yellow",
-   "entry": 16,
+   "entry": 35,
    "slots": [
     {
      "x": 230,

@@ -101,7 +101,7 @@ def main():
         entry += ring_count / 4
 
     goals = []
-    entry = 1
+    entry = ring_count
     for a in range(0, 4):
         goals.append(Goal(250, 250,
                           a * (math.pi / 2), 20, 100, ball_rad, 4, 0, colors[a], entry))

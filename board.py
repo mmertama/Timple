@@ -46,7 +46,7 @@ class Slot:
         if self.hilit:
             frame.begin_path()
             frame.arc(self.x - self.size / 2, self.y - self.size / 2, self.size * 2, 0, 2 * math.pi)
-            frame.fill_style('#FB1B1B0F')
+            frame.fill_style('#1B1B1B1F')
             frame.fill()
 
         if self.selected:
@@ -100,8 +100,8 @@ class Ring:
                 s.selected = False
         return changed_any
 
-    def position(self, pos):
-        return pos % len(self.slots)
+    # def position(self, pos):
+    #    return pos % len(self.slots)
 
 
 class Home:
@@ -132,6 +132,14 @@ class Start(Home):
         for s in self.slots:
             if s.peg:
                 s.selected = True
+                return
+
+    def return_home(self, peg):
+        for s in self.slots:
+            if not s.peg:
+                s.peg = peg
+                peg.slot.peg = None
+                peg.slot = s
                 return
 
 
@@ -177,8 +185,8 @@ class Game:
             if not target:
                 return False
             if target.peg:
-                help("Eat it")
-            slot.swap(target)
+                self.starts[target.peg.color].return_home(target.peg)
+            slot.move(target, self.current_player().current_dice)
             self.state = self.NEXT_TURN
             self.turn_inc()
             return True
@@ -268,21 +276,21 @@ class Game:
 
         # If slot in ring
         if slot.owner == self.ring:
-            position = self.ring.position(self.current_start().entry
-                                          + slot.peg.position
-                                          + self.current_player().current_dice)
-            if position < self.current_goal().entry:
+            slot_count = len(self.ring.slots)
+            target_pos = slot.peg.position + self.current_player().current_dice
+            if target_pos < self.current_goal().entry + slot_count:
+                position = (target_pos + self.current_goal().entry) % slot_count
                 return self.ring.slots[position]
             # It tries to go goal
             else:
-                goal_position = self.current_goal().entry - position
-            # if we can fit it in
-            if goal_position < len(self.current_goal().slots) and not self.current_goal().slots[goal_position].peg:
-                return self.current_goal().slots[goal_position]
-            # is it one of starts, and can we go (or event eat)?
-            elif slot.owner == self.current_start():
-                if not self.ring.slots[position].peg or self.ring.slots[position].peg.color != self.current_color:
-                    return self.ring.slots[self.current_start().entry]
+                goal_position = (self.current_goal().entry + slot_count) - target_pos
+                # if we can fit it in
+                if goal_position < slot_count and not self.current_goal().slots[goal_position].peg:
+                    return self.current_goal().slots[goal_position]
+                # is it one of starts, and can we go (or event eat)?
+                elif slot.owner == self.current_start():
+                    if not self.ring.slots[position].peg or self.ring.slots[position].peg.color != self.current_color:
+                        return self.ring.slots[self.current_start().entry]
         return None
 
 
@@ -319,7 +327,7 @@ def main():
 
     # The mouse coordinates are in window coordinates, thus we need canvas position
     canvas_rect = None
-    
+
     # ...and have a function to read it
     def on_open():
         nonlocal canvas_rect
@@ -435,10 +443,10 @@ def main():
             hilit_slot.hilit = False
         hilit_slot = None
         # Controls if Dice can be thrown
-        next_dice_ok = True
         x = float(event.properties['clientX']) - canvas_rect.x
         y = float(event.properties['clientY']) - canvas_rect.y
-        game.clicked(x, y)
+        if game.clicked(x, y):
+            next_dice()
         redraw()
 
     # subscribe clicks
