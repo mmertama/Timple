@@ -9,7 +9,7 @@ import Telex
 FEATHER = 10
 DICE_FACE = '&#127922;'
 DIE_1 = 9856
-DICE_WAIT = 3
+DICE_WAIT = 1.5
 
 
 # A peg goes in slot
@@ -21,7 +21,7 @@ class Peg:
 
     def draw(self, frame):
         frame.begin_path()
-        frame.arc(self.slot.x - self.slot.size / 2, self.slot.y - self.slot.size / 2, self.slot.size, 0, 2 * math.pi)
+        frame.arc(self.slot.x, self.slot.y, self.slot.size, 0, 2 * math.pi)
         frame.fill_style(self.color)
         frame.fill()
 
@@ -46,19 +46,19 @@ class Slot:
 
     def draw(self, frame):
         frame.begin_path()
-        frame.arc(self.x - self.size / 2, self.y - self.size / 2, self.size, 0, 2 * math.pi)
+        frame.arc(self.x, self.y, self.size, 0, 2 * math.pi)
         frame.stroke_style(self.color)
         frame.stroke()
 
         if self.hilit:
             frame.begin_path()
-            frame.arc(self.x - self.size / 2, self.y - self.size / 2, self.size * 2, 0, 2 * math.pi)
+            frame.arc(self.x, self.y, self.size * 2, 0, 2 * math.pi)
             frame.fill_style('#1B1B1B2F')
             frame.fill()
 
         if self.selected:
             frame.begin_path()
-            frame.arc(self.x - self.size / 2, self.y - self.size / 2, self.size * 2, 0, 2 * math.pi)
+            frame.arc(self.x, self.y, self.size * 2, 0, 2 * math.pi)
             frame.stroke_style('#2F2F2F')
             frame.stroke()
 
@@ -95,14 +95,14 @@ class Ring:
         return None
 
     def set_active(self, color):
-        changed_any = False
+        selected_count = 0
         for s in self.slots:
             if s.peg and s.peg.color == color:
                 s.selected = True
-                changed_any = True
+                selected_count += 1
             else:
                 s.selected = False
-        return changed_any
+        return selected_count
 
     def deactivate(self):
         for s in self.slots:
@@ -137,7 +137,8 @@ class Start(Home):
         for s in self.slots:
             if s.peg:
                 s.selected = True
-                return
+                return s
+        return None
 
     def deactivate(self):
         for s in self.slots:
@@ -177,6 +178,7 @@ class Game:
         self.players = []
         self.player_turn = 0
         self.help = help_function
+        self.no_choice = True
 
     def draw(self, frame_composer):
         self.ring.draw(frame_composer)
@@ -250,12 +252,18 @@ class Game:
                 self.help(self.current_player().name.capitalize() + " throws the dice to see who will be the first.")
             return True
         elif self.state == self.NEXT_TURN:
+            selected_count = self.ring.set_active(self.current_player().color)
             if value == 6:
-                self.current_start().activate()
-            found_any = self.ring.set_active(self.current_player().color)
-            if not (value == 6 and self.current_start().count() > 0) and not found_any:
+                activated_start = self.current_start().activate()
+                if self.target_slot(activated_start):
+                    selected_count += 1
+                else:
+                    activated_start.selected = False
+            self.no_choice = selected_count <= 1
+            has_target = next((s for s in self.ring.slots if s.selected and self.target_slot(s)), None)
+            if selected_count == 0 or not has_target:
                 self.turn_inc()
-                self.help("Nobody can move... " + self.current_player().name.capitalize() + " throws next.")
+                self.help("Cannot move, pass turn to " + self.current_player().name.capitalize())
                 return True
             self.help(self.current_player().name.capitalize() + " do your move.")
             self.state = self.PICK_MOVER
@@ -272,21 +280,25 @@ class Game:
         if slot.owner == self.ring:
             slot_count = len(self.ring.slots)
             target_pos = slot.peg.position + self.current_player().current_dice
-            if target_pos < self.current_goal().entry:
+            if target_pos <= slot_count:
                 position = (target_pos + self.current_start().entry) % slot_count
-                return self.ring.slots[position]
+                if not self.ring.slots[position].peg or self.ring.slots[position].peg.color != self.current_color():
+                    return self.ring.slots[position]
             # It tries to go goal
             else:
-                goal_position = self.current_goal().entry - target_pos
+                goal_position = (target_pos - slot_count) - 1
                 # if we can fit it in
                 if goal_position < len(self.current_goal().slots) and not self.current_goal().slots[goal_position].peg:
                     return self.current_goal().slots[goal_position]
                 # is it one of starts, and can we go (or event eat)?
         elif slot.owner == self.current_start() and self.current_start().is_active():
             start_pos = self.current_start().entry
-            if not self.ring.slots[start_pos].peg or self.ring.slots[start_pos].peg.color != self.current_color:
+            if not self.ring.slots[start_pos].peg or self.ring.slots[start_pos].peg.color != self.current_color():
                 return self.ring.slots[start_pos]
         return None
+
+    def get_activated(self):
+        return [s for s in self.ring.slots if s.selected] + [s for s in self.current_start().slots if s.selected]
 
 
 def main():
@@ -377,6 +389,7 @@ def main():
         dice.set_style('background-color', game.current_color())
         # Next throw will be ok
         next_dice_ok = True
+        game.help(game.current_player().name.capitalize() + ", throw your dice")
 
     # Function called when dice will be thrown.
     def throw_dice(_):

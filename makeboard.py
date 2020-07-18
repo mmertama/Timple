@@ -69,8 +69,8 @@ class Start(Home):
 class Goal(Home):
     def __init__(self, x, y, angle, distance, width, size, count, direction, color, entry):
         super().__init__(color, entry)
-        px = math.sin(angle) * distance
-        py = math.cos(angle) * distance
+        px = math.sin(angle) * (distance + width)
+        py = math.cos(angle) * (distance + width)
 
         dx = math.sin(angle + direction) * width / count
         dy = math.cos(angle + direction) * width / count
@@ -80,8 +80,8 @@ class Goal(Home):
 
         for i in range(0, count):
             self.slots.append(Slot(x0, y0, size))
-            x0 += dx
-            y0 += dy
+            x0 -= dx
+            y0 -= dy
 
 
 def main():
