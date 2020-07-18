@@ -2,6 +2,7 @@ import sys
 import math
 import json
 import random
+import functools
 from datetime import timedelta
 import Telex
 
@@ -23,6 +24,12 @@ class Peg:
         frame.arc(self.slot.x - self.slot.size / 2, self.slot.y - self.slot.size / 2, self.slot.size, 0, 2 * math.pi)
         frame.fill_style(self.color)
         frame.fill()
+
+    def reset(self, slot):
+        self.slot.peg = None
+        slot.peg = self
+        self.slot = slot
+        self.position = 0
 
 
 # Game is set of slots
@@ -46,7 +53,7 @@ class Slot:
         if self.hilit:
             frame.begin_path()
             frame.arc(self.x - self.size / 2, self.y - self.size / 2, self.size * 2, 0, 2 * math.pi)
-            frame.fill_style('#1B1B1B1F')
+            frame.fill_style('#1B1B1B2F')
             frame.fill()
 
         if self.selected:
@@ -62,15 +69,12 @@ class Slot:
         return math.fabs(self.x - x) <= (self.size + FEATHER) \
                and math.fabs(self.y - y) <= (self.size + FEATHER)
 
-    def select(self, select):
-        self.selected = select
-
-    def move(self, other, dist):
+    def move(self, other, steps):
         assert self.peg
         assert not other.peg
+        self.peg.position += steps
+        self.peg.slot = other
         other.peg = self.peg
-        other.peg.position += dist
-        other.peg.slot = other
         self.peg = None
 
 
@@ -100,8 +104,9 @@ class Ring:
                 s.selected = False
         return changed_any
 
-    # def position(self, pos):
-    #    return pos % len(self.slots)
+    def deactivate(self):
+        for s in self.slots:
+            s.selected = False
 
 
 class Home:
@@ -128,18 +133,23 @@ class Start(Home):
     def __init__(self, d):
         super().__init__(d)
 
-    def set_active(self):
+    def activate(self):
         for s in self.slots:
             if s.peg:
                 s.selected = True
                 return
 
+    def deactivate(self):
+        for s in self.slots:
+            s.selected = False
+
+    def is_active(self):
+        return functools.reduce(lambda a, b: a or b, self.slots)
+
     def return_home(self, peg):
         for s in self.slots:
             if not s.peg:
-                s.peg = peg
-                peg.slot.peg = None
-                peg.slot = s
+                peg.reset(s)
                 return
 
 
@@ -186,32 +196,16 @@ class Game:
                 return False
             if target.peg:
                 self.starts[target.peg.color].return_home(target.peg)
-            slot.move(target, self.current_player().current_dice)
+            self.ring.deactivate()
+            self.current_start().deactivate()
+            if slot.owner == self.current_start():
+                slot.move(target, 0)
+            else:
+                slot.move(target, self.current_player().current_dice)
             self.state = self.NEXT_TURN
             self.turn_inc()
             return True
         return False
-
-        '''
-        if self.swap(self.ring.clicked(x, y)):
-            return True
-        for s in self.starts.values():
-            if self.swap(s.clicked(x, y)):
-                return True
-        for g in self.goals.values():
-            if self.swap(g.clicked(x, y)):
-                return True
-        '''
-        return False
-
-    def swap(self, selected):
-        if not selected:
-            return False
-        if self.selected:
-            self.selected.select(False)
-        self.selected = selected
-        selected.select(True)
-        return True
 
     def current_player(self):
         return self.players[self.player_turn] if self.player_turn < len(self.players) else None
@@ -257,7 +251,7 @@ class Game:
             return True
         elif self.state == self.NEXT_TURN:
             if value == 6:
-                self.current_start().set_active()
+                self.current_start().activate()
             found_any = self.ring.set_active(self.current_player().color)
             if not (value == 6 and self.current_start().count() > 0) and not found_any:
                 self.turn_inc()
@@ -278,19 +272,20 @@ class Game:
         if slot.owner == self.ring:
             slot_count = len(self.ring.slots)
             target_pos = slot.peg.position + self.current_player().current_dice
-            if target_pos < self.current_goal().entry + slot_count:
-                position = (target_pos + self.current_goal().entry) % slot_count
+            if target_pos < self.current_goal().entry:
+                position = (target_pos + self.current_start().entry) % slot_count
                 return self.ring.slots[position]
             # It tries to go goal
             else:
-                goal_position = (self.current_goal().entry + slot_count) - target_pos
+                goal_position = self.current_goal().entry - target_pos
                 # if we can fit it in
-                if goal_position < slot_count and not self.current_goal().slots[goal_position].peg:
+                if goal_position < len(self.current_goal().slots) and not self.current_goal().slots[goal_position].peg:
                     return self.current_goal().slots[goal_position]
                 # is it one of starts, and can we go (or event eat)?
-                elif slot.owner == self.current_start():
-                    if not self.ring.slots[position].peg or self.ring.slots[position].peg.color != self.current_color:
-                        return self.ring.slots[self.current_start().entry]
+        elif slot.owner == self.current_start() and self.current_start().is_active():
+            start_pos = self.current_start().entry
+            if not self.ring.slots[start_pos].peg or self.ring.slots[start_pos].peg.color != self.current_color:
+                return self.ring.slots[start_pos]
         return None
 
 
