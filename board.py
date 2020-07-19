@@ -166,6 +166,7 @@ class Game:
     PICK_MOVER = 2
     SELECT_STARTER = 3
     NEXT_TURN = 4
+    MIN_PLAYERS = 2
 
     def __init__(self, data, help_function):
         self.width = data['width']
@@ -191,6 +192,7 @@ class Game:
         return self.ring.slot_at(x, y) or self.current_start().slot_at(x, y) or self.current_goal().slot_at(x, y)
 
     def clicked(self, x, y):
+        assert self.state == self.PICK_MOVER
         slot = self.slot_at(x, y)
         if slot and slot.peg and slot.peg.color == self.current_player().color:
             target = self.target_slot(slot)
@@ -214,7 +216,7 @@ class Game:
 
     def set_players(self, player_names):
         self.players = [Player(p, player_names[p]) for p in player_names if player_names[p]]
-        if len(self.players) < 2:
+        if len(self.players) < self.MIN_PLAYERS:
             return
         self.state = self.SELECT_STARTER
         self.player_turn = 0
@@ -332,15 +334,31 @@ def main():
     # Set Telex error handler
     ui.on_error(lambda e: sys.exit(e))
 
+    # Colors what we have
+    colors = ['red', 'green', 'blue', 'yellow']
+    # List of UI elements holding then the player names
+    name_elements = {color: Telex.Element(ui, color + "_name") for color in colors}
+
+    def on_name_change(_):
+        names = {color: name_elements[color].values()['value'] for color in colors}
+        if sum([True for nn in names.values() if len(nn) > 0]) >= game.MIN_PLAYERS:
+            start.remove_attribute('disabled')
+        else:
+            start.set_attribute('disabled')
+
+    for n in name_elements.values():
+        n.subscribe('input', on_name_change)
+
     # The mouse coordinates are in window coordinates, thus we need canvas position
     canvas_rect = None
 
     # ...and have a function to read it
-    def on_open():
+    def get_rect():
         nonlocal canvas_rect
         canvas_rect = canvas.rect()
-    # ... of which we call upon start
-    ui.on_open(on_open)
+    # ... of which we call upon start, note that we set position absolute in HTML,
+    # otherwise these rect may not be valid if page content changes
+    ui.on_open(get_rect)
 
     # Function that wipes previous draw and draw a new frame
     def redraw():
@@ -351,11 +369,7 @@ def main():
 
     # Function called when a Start button is clicked.
     def on_start(_):
-        # Colors what we have
-        colors = ['red', 'green', 'blue', 'yellow']
-        # List of UI elements holding then the player names
-        name_elements = {color: Telex.Element(ui, color + "_name") for color in colors}
-        # ...and the names in those
+        # the names in those elements
         names = {color: name_elements[color].values()['value'] for color in colors}
         # Apply those to UI
         game.set_players(names)
@@ -447,6 +461,8 @@ def main():
         nonlocal next_dice_ok
         nonlocal hilit_slot
         nonlocal canvas_rect
+        if game.state != game.PICK_MOVER:
+            return
         if hilit_slot:
             hilit_slot.hilit = False
         hilit_slot = None

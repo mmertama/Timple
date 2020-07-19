@@ -19,6 +19,11 @@
           font-size: 16px;
           visibility: hidden;
         }
+        canvas {
+            position: absolute;
+            left: 120px;
+            top: 120px;
+        }
     </style>
 </head>
 <body>
@@ -33,8 +38,8 @@
         <span style="color:yellow;">&#x2B24;</span>
         <input type="text" id="yellow_name" name="name" placeholder="player yellow">
     </div>
-    <div id="instructions"></div>
-    <div><button id="start" type="button">Start!</button></div>
+    <div id="instructions">Provide players names before start.</div>
+    <div><button id="start" type="button" disabled>Start!</button></div>
     <div><button id="dice" class="dice_button" type="button" style="font-size:48px;">&#127922;</button></div>
     <canvas id="canvas" width=700 height=700>
     </canvas>
