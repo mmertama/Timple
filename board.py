@@ -196,17 +196,6 @@ class Game:
         self.help = help_function
         self.selected = None
 
-    def reset(self):
-        self.players = []
-        self.state = self.START
-        self.player_turn = 0
-        self.selected = None
-        for s in self.starts.values():
-            s.reset()
-        for g in self.goals.values():
-            g.reset()
-        self.ring.reset()
-
     def draw(self, frame_composer):
         self.ring.draw(frame_composer)
         for s in self.starts.values():
@@ -432,6 +421,10 @@ def main():
 
         def auto_play(tid):
             nonlocal auto_play_state
+            if not auto_play_state & AUTO_PLAY_ON:
+                ui.stop_timer(tid)
+                print("No timer")
+                return
             print("nix", next_dice_ok)
             if not next_dice_ok:
                 return
@@ -494,6 +487,7 @@ def main():
 
     # Function called when next throw is expected.
     def next_dice():
+        print("next dice")
         # Python trick to refer outer scope variable.
         nonlocal next_dice_ok
         # Set icon
@@ -590,25 +584,22 @@ def main():
     # subscribe clicks
     canvas.subscribe('click', on_click, ["clientX", "clientY"])
 
-    def on_reset():
+    def on_reset(_):
         nonlocal auto_play_state
         nonlocal hilit_slot
         nonlocal next_dice_ok
+        nonlocal game
         # Reset local state
         auto_play_state = 0
         hilit_slot = None
         next_dice_ok = None
-        game.reset()
+        game = Game(data, game.help)
         game.help(initial_help)
         for k in name_elements:
             name_elements[k].remove_attribute('disabled')
         # Hide start button (using hidden attribute)
         Telex.Element(ui, 'start_items').remove_attribute('hidden')
-        # Show dice (using styles - for some reason attribute wont work)
         dice.set_style('visibility', 'hidden')
-        # Set auto play mode
-        Telex.Element(ui, 'auto_decide').remove_attribute('checked')
-        Telex.Element(ui, 'auto_start').remove_attribute('checked')
         restart.set_attribute('hidden')
         redraw()
 
