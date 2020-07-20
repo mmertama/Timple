@@ -1,14 +1,19 @@
-import sys
-import math
-import json
-import random
-import functools
-from datetime import timedelta
-import Telex
+# Needed imports
+import sys                      # for exit on error
+import math                     # for pi
+import json                     # for reading json files
+import random                   # for dice values
+import functools                # for some utility functions
+from datetime import timedelta  # for time periods
+import Telex                    # for UI
 
+# The mouse click radius outside drawing radius
 FEATHER = 10
+# HTML Unicode value for dice graphics
 DICE_FACE = '&#127922;'
+# HTML Unicode value for a 1st die value
 DIE_1 = 9856
+# Seconds to show the current die value, when not waiting for user
 DICE_WAIT = 1.5
 
 
@@ -94,15 +99,15 @@ class Ring:
                 return s
         return None
 
-    def set_active(self, color):
-        selected_count = 0
+    def activate(self, color, target):
+        selected = []
         for s in self.slots:
-            if s.peg and s.peg.color == color:
+            if s.peg and s.peg.color == color and target(s):
                 s.selected = True
-                selected_count += 1
+                selected.append(s)
             else:
                 s.selected = False
-        return selected_count
+        return selected
 
     def deactivate(self):
         for s in self.slots:
@@ -133,9 +138,9 @@ class Start(Home):
     def __init__(self, d):
         super().__init__(d)
 
-    def activate(self):
+    def activate(self, target):
         for s in self.slots:
-            if s.peg:
+            if s.peg and target(s):
                 s.selected = True
                 return s
         return None
@@ -154,6 +159,14 @@ class Start(Home):
                 return
 
 
+class Goals(Home):
+    def __init__(self, d):
+        super().__init__(d)
+
+    def is_full(self):
+        return len([s for s in self.slots if s.peg]) == len(self.slots)
+
+
 class Player:
     def __init__(self, color, name):
         self.color = color
@@ -166,6 +179,9 @@ class Game:
     PICK_MOVER = 2
     SELECT_STARTER = 3
     NEXT_TURN = 4
+    GAME_OVER = 5
+
+    NEW_RING = 6
     MIN_PLAYERS = 2
 
     def __init__(self, data, help_function):
@@ -173,13 +189,23 @@ class Game:
         self.height = data['height']
         self.ring = Ring(data['ring'])
         self.starts = {s['color']: Start(s) for s in data['starts']}
-        self.goals = {s['color']: Home(s) for s in data['goals']}
-        self.selected = None
+        self.goals = {s['color']: Goals(s) for s in data['goals']}
         self.state = self.START
         self.players = []
         self.player_turn = 0
         self.help = help_function
-        self.no_choice = True
+        self.selected = None
+
+    def reset(self):
+        self.players = []
+        self.state = self.START
+        self.player_turn = 0
+        self.selected = None
+        for s in self.starts.values():
+            s.reset()
+        for g in self.goals.values():
+            g.reset()
+        self.ring.reset()
 
     def draw(self, frame_composer):
         self.ring.draw(frame_composer)
@@ -193,7 +219,9 @@ class Game:
 
     def clicked(self, x, y):
         assert self.state == self.PICK_MOVER
+        self.selected = None
         slot = self.slot_at(x, y)
+        print("hit at", slot, slot.peg.color if slot.peg else "EMpty")
         if slot and slot.peg and slot.peg.color == self.current_player().color:
             target = self.target_slot(slot)
             if not target:
@@ -207,9 +235,14 @@ class Game:
             else:
                 slot.move(target, self.current_player().current_dice)
             self.state = self.NEXT_TURN
-            self.turn_inc()
-            return True
+            return self.turn_inc()
         return False
+
+    def player(self, color):
+        for n in self.players:
+            if n.color == color:
+                return n
+        return None
 
     def current_player(self):
         return self.players[self.player_turn] if self.player_turn < len(self.players) else None
@@ -234,7 +267,13 @@ class Game:
     def turn_inc(self):
         self.player_turn += 1
         if self.player_turn >= len(self.players):
+            for k in self.goals:
+                if self.goals[k].is_full():
+                    self.help(self.player(k).name + " won!")
+                    self.state = self.GAME_OVER
+                    return False
             self.player_turn = 0
+        return True
 
     def dice_thrown(self, value):
         self.players[self.player_turn].current_dice = value
@@ -246,26 +285,25 @@ class Game:
                 self.player_turn = 0
                 self.help(self.current_player().name.capitalize() + " will start the game!")
                 # this is different than in Kimble
-                for start in self.starts.values():
-                    s = start.slots[0]
-                    t = self.ring.slots[start.entry]
-                    s.move(t, 0)
+                for p in self.players:
+                    if p.name:
+                        start = self.starts[p.color]
+                        s = start.slots[0]
+                        t = self.ring.slots[start.entry]
+                        s.move(t, 0)
             else:
                 self.help(self.current_player().name.capitalize() + " throws the dice to see who will be the first.")
             return True
         elif self.state == self.NEXT_TURN:
-            selected_count = self.ring.set_active(self.current_player().color)
-            if value == 6:
-                activated_start = self.current_start().activate()
-                if self.target_slot(activated_start):
-                    selected_count += 1
-                else:
-                    activated_start.selected = False
-            self.no_choice = selected_count <= 1
-            has_target = next((s for s in self.ring.slots if s.selected and self.target_slot(s)), None)
-            if selected_count == 0 or not has_target:
-                self.turn_inc()
-                self.help("Cannot move, pass turn to " + self.current_player().name.capitalize())
+            assert not self.selected
+            self.selected = self.ring.activate(self.current_player().color, self.target_slot)
+            if value == self.NEW_RING:
+                activated_start = self.current_start().activate(self.target_slot)
+                if activated_start:
+                    self.selected.append(activated_start)
+            if len(self.selected) == 0:
+                if self.turn_inc():
+                    self.help("Cannot move, pass turn to " + self.current_player().name.capitalize())
                 return True
             self.help(self.current_player().name.capitalize() + " do your move.")
             self.state = self.PICK_MOVER
@@ -303,6 +341,11 @@ class Game:
         return [s for s in self.ring.slots if s.selected] + [s for s in self.current_start().slots if s.selected]
 
 
+AUTO_PLAY_ON = 1
+AUTO_PLAY_PENDING = 2
+AUTO_PLAY_DECIDE = 4
+
+
 def main():
     # This soils console with internal stuff
     # Telex.set_debug()
@@ -318,6 +361,8 @@ def main():
     dice = Telex.Element(ui, "dice")
     start = Telex.Element(ui, "start")
     instructions = Telex.Element(ui, "instructions")
+    restart = Telex.Element(ui, "restart")
+
 
     # Read game data file
     with open("gui/data.json", 'r') as f:
@@ -325,6 +370,9 @@ def main():
 
     # Create Game object
     game = Game(data, lambda string: instructions.set_html(string))
+
+    initial_help = "Provide players names before start."
+    game.help(initial_help)
 
     # Compose initial UI graphics
     frame_composer = Telex.FrameComposer()
@@ -339,18 +387,29 @@ def main():
     # List of UI elements holding then the player names
     name_elements = {color: Telex.Element(ui, color + "_name") for color in colors}
 
+    # Let's monitor whether names are set
     def on_name_change(_):
         names = {color: name_elements[color].values()['value'] for color in colors}
         if sum([True for nn in names.values() if len(nn) > 0]) >= game.MIN_PLAYERS:
             start.remove_attribute('disabled')
         else:
             start.set_attribute('disabled')
-
+    # Subscribe input changes
     for n in name_elements.values():
         n.subscribe('input', on_name_change)
 
+    # Controls if Dice can be thrown
+    next_dice_ok = True
+
     # The mouse coordinates are in window coordinates, thus we need canvas position
     canvas_rect = None
+
+    # A slot that holds current target slot (when choosing one)
+    hilit_slot = None
+
+    # Auto play state
+    auto_play_state = 0
+
 
     # ...and have a function to read it
     def get_rect():
@@ -367,8 +426,46 @@ def main():
         game.draw(fc)
         canvas.draw_frame(fc)
 
+    def start_auto_play():
+        nonlocal auto_play_state
+        auto_play_state |= AUTO_PLAY_ON
+
+        def auto_play(tid):
+            nonlocal auto_play_state
+            print("nix", next_dice_ok)
+            if not next_dice_ok:
+                return
+
+            def send_click(at):
+                class EventDuck:
+                    def __init__(self):
+                        self.properties = {}
+
+                event = EventDuck()
+                event.properties['clientX'] = str(game.selected[at].x + canvas_rect.x)
+                event.properties['clientY'] = str(game.selected[at].y + canvas_rect.y)
+                on_click(event)
+
+            print("throw")
+            throw_dice(None)
+            if game.state == game.PICK_MOVER:
+                if game.selected and len(game.selected) == 1:
+                    print("clicx")
+                    send_click(0)
+                elif game.selected and auto_play_state & AUTO_PLAY_DECIDE:
+                    print("guess")
+                    send_click(random.randint(0, len(game.selected) - 1))
+                else:
+                    print("stop")
+                    auto_play_state |= AUTO_PLAY_PENDING
+                    ui.stop_timer(tid)
+            print("auto play", game.state, auto_play_state)
+
+        ui.start_timer_id(timedelta(seconds=1), False, auto_play)
+
     # Function called when a Start button is clicked.
     def on_start(_):
+        nonlocal auto_play_state
         # the names in those elements
         names = {color: name_elements[color].values()['value'] for color in colors}
         # Apply those to UI
@@ -383,15 +480,17 @@ def main():
         for k in name_elements:
             name_elements[k].set_attribute('disabled')
         # Hide start button (using hidden attribute)
-        start.set_attribute('hidden')
+        Telex.Element(ui, 'start_items').set_attribute('hidden')
         # Show dice (using styles - for some reason attribute wont work)
         dice.set_style('visibility', 'visible')
+        # Set auto play mode
+        if Telex.Element(ui, 'auto_decide').values()['checked'] == 'true':
+            auto_play_state |= AUTO_PLAY_DECIDE
+        if Telex.Element(ui, 'auto_start').values()['checked'] == 'true':
+            start_auto_play()
 
     # Subscribe The start button.
     start.subscribe('click', on_start)
-
-    # Controls if Dice can be thrown
-    next_dice_ok = True
 
     # Function called when next throw is expected.
     def next_dice():
@@ -402,8 +501,14 @@ def main():
         # Set color to match with thrower.
         dice.set_style('background-color', game.current_color())
         # Next throw will be ok
+        print("niext", game.state)
+        if game.state == game.GAME_OVER:
+            return
         next_dice_ok = True
         game.help(game.current_player().name.capitalize() + ", throw your dice")
+        print("auto statue", auto_play_state)
+        if auto_play_state & AUTO_PLAY_PENDING:
+            start_auto_play()
 
     # Function called when dice will be thrown.
     def throw_dice(_):
@@ -416,16 +521,16 @@ def main():
         dice.set_html('&#' + str(DIE_1 + number) + ';')
         # We tell that to game and see if next throw will be ok soon (show a glimpse of current value first)
         if game.dice_thrown(number + 1):
+            print ("start nix timer")
             ui.start_timer(timedelta(seconds=DICE_WAIT), True, next_dice)
+        else:
+            assert game.state == game.PICK_MOVER
         next_dice_ok = False
         # We have to redraw UI as game changes may has happen
         redraw()
 
     # Subscribe a button
     dice.subscribe('click', throw_dice)
-
-    # A slot that holds current target slot (when choosing one)
-    hilit_slot = None
 
     # Function that shows targets
     def show_targets(e):
@@ -462,6 +567,7 @@ def main():
         nonlocal hilit_slot
         nonlocal canvas_rect
         if game.state != game.PICK_MOVER:
+            print("not click")
             return
         if hilit_slot:
             hilit_slot.hilit = False
@@ -469,12 +575,44 @@ def main():
         # Controls if Dice can be thrown
         x = float(event.properties['clientX']) - canvas_rect.x
         y = float(event.properties['clientY']) - canvas_rect.y
+        print("clicking")
         if game.clicked(x, y):
+            print("next")
             next_dice()
+        elif game.state == game.GAME_OVER:
+            restart.remove_attribute('hidden')
+        else:
+            assert not auto_play_state & AUTO_PLAY_ON
+        print("draw")
         redraw()
+        print("clicked")
 
     # subscribe clicks
     canvas.subscribe('click', on_click, ["clientX", "clientY"])
+
+    def on_reset():
+        nonlocal auto_play_state
+        nonlocal hilit_slot
+        nonlocal next_dice_ok
+        # Reset local state
+        auto_play_state = 0
+        hilit_slot = None
+        next_dice_ok = None
+        game.reset()
+        game.help(initial_help)
+        for k in name_elements:
+            name_elements[k].remove_attribute('disabled')
+        # Hide start button (using hidden attribute)
+        Telex.Element(ui, 'start_items').remove_attribute('hidden')
+        # Show dice (using styles - for some reason attribute wont work)
+        dice.set_style('visibility', 'hidden')
+        # Set auto play mode
+        Telex.Element(ui, 'auto_decide').remove_attribute('checked')
+        Telex.Element(ui, 'auto_start').remove_attribute('checked')
+        restart.set_attribute('hidden')
+        redraw()
+
+    restart.subscribe('click', on_reset)
 
     # Start the UI, the function wont return until application exits.
     ui.run()

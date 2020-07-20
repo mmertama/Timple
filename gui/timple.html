@@ -38,8 +38,15 @@
         <span style="color:yellow;">&#x2B24;</span>
         <input type="text" id="yellow_name" name="name" placeholder="player yellow">
     </div>
-    <div id="instructions">Provide players names before start.</div>
-    <div><button id="start" type="button" disabled>Start!</button></div>
+    <div id="instructions"></div>
+    <div id="start_items">
+        <button id="start" type="button" disabled>Play!</button>
+        <input type="checkbox" id="auto_start" name="auto_play" value="Auto"/>
+        <label for="auto_start">Auto Play</label>
+        <input type="checkbox" id="auto_decide" name="decide" value="Auto"/>
+        <label for="auto_decide">Auto Decisions</label>
+    </div>
+    <div><button id="restart" type="button" hidden>Restart!</button>
     <div><button id="dice" class="dice_button" type="button" style="font-size:48px;">&#127922;</button></div>
     <canvas id="canvas" width=700 height=700>
     </canvas>
