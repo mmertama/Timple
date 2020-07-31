@@ -5,7 +5,7 @@ import json                     # for reading json files
 import random                   # for dice values
 import functools                # for some utility functions
 from datetime import timedelta  # for time periods
-import Telex                    # for UI
+import Gempyre                  # for UI
 
 # The mouse click radius outside drawing radius
 FEATHER = 10
@@ -337,20 +337,20 @@ AUTO_PLAY_DECIDE = 4
 
 def main():
     # This soils console with internal stuff
-    # Telex.set_debug()
+    # Gempyre.set_debug()
     # Just print a greeting to file
-    print("Using Telex " + str(Telex.version()))
+    print("Using Gempyre " + str(Gempyre.version()))
 
-    # Construct a Telex::Ui
+    # Construct a Gempyre::Ui
     ui_file = 'gui/timple.html'
-    ui = Telex.Ui(ui_file)
+    ui = Gempyre.Ui(ui_file)
 
     # Then get needed UI components
-    canvas = Telex.CanvasElement(ui, "canvas")
-    dice = Telex.Element(ui, "dice")
-    start = Telex.Element(ui, "start")
-    instructions = Telex.Element(ui, "instructions")
-    restart = Telex.Element(ui, "restart")
+    canvas = Gempyre.CanvasElement(ui, "canvas")
+    dice = Gempyre.Element(ui, "dice")
+    start = Gempyre.Element(ui, "start")
+    instructions = Gempyre.Element(ui, "instructions")
+    restart = Gempyre.Element(ui, "restart")
 
 
     # Read game data file
@@ -364,17 +364,17 @@ def main():
     game.help(initial_help)
 
     # Compose initial UI graphics
-    frame_composer = Telex.FrameComposer()
+    frame_composer = Gempyre.FrameComposer()
     game.draw(frame_composer)
     canvas.draw_frame(frame_composer)
 
-    # Set Telex error handler
+    # Set Gempyre error handler
     ui.on_error(lambda e: sys.exit(e))
 
     # Colors what we have
     colors = ['red', 'green', 'blue', 'yellow']
     # List of UI elements holding then the player names
-    name_elements = {color: Telex.Element(ui, color + "_name") for color in colors}
+    name_elements = {color: Gempyre.Element(ui, color + "_name") for color in colors}
 
     # Let's monitor whether names are set
     def on_name_change(_):
@@ -410,8 +410,8 @@ def main():
 
     # Function that wipes previous draw and draw a new frame
     def redraw():
-        fc = Telex.FrameComposer()
-        fc.clear_rect(Telex.Rect(0, 0, game.width, game.height))
+        fc = Gempyre.FrameComposer()
+        fc.clear_rect(Gempyre.Rect(0, 0, game.width, game.height))
         game.draw(fc)
         canvas.draw_frame(fc)
 
@@ -473,13 +473,13 @@ def main():
         for k in name_elements:
             name_elements[k].set_attribute('disabled')
         # Hide start button (using hidden attribute)
-        Telex.Element(ui, 'start_items').set_attribute('hidden')
+        Gempyre.Element(ui, 'start_items').set_attribute('hidden')
         # Show dice (using styles - for some reason attribute wont work)
         dice.set_style('visibility', 'visible')
         # Set auto play mode
-        if Telex.Element(ui, 'auto_decide').values()['checked'] == 'true':
+        if Gempyre.Element(ui, 'auto_decide').values()['checked'] == 'true':
             auto_play_state |= AUTO_PLAY_DECIDE
-        if Telex.Element(ui, 'auto_start').values()['checked'] == 'true':
+        if Gempyre.Element(ui, 'auto_start').values()['checked'] == 'true':
             start_auto_play()
 
     # Subscribe The start button.
@@ -598,7 +598,7 @@ def main():
         for k in name_elements:
             name_elements[k].remove_attribute('disabled')
         # Hide start button (using hidden attribute)
-        Telex.Element(ui, 'start_items').remove_attribute('hidden')
+        Gempyre.Element(ui, 'start_items').remove_attribute('hidden')
         dice.set_style('visibility', 'hidden')
         restart.set_attribute('hidden')
         redraw()
