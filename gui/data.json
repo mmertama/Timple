@@ -12,50 +12,62 @@
     "color": null
    },
    {
-    "x": 296,
+    "x": 203,
     "y": 392,
     "size": 6,
     "color": null
    },
    {
-    "x": 338,
+    "x": 161,
     "y": 371,
     "size": 6,
     "color": null
    },
    {
-    "x": 371,
+    "x": 128,
     "y": 338,
     "size": 6,
     "color": null
    },
    {
-    "x": 392,
+    "x": 107,
     "y": 296,
     "size": 6,
     "color": null
    },
    {
-    "x": 400,
+    "x": 100,
     "y": 250,
     "size": 6,
     "color": null
    },
    {
-    "x": 392,
+    "x": 107,
     "y": 203,
     "size": 6,
     "color": null
    },
    {
-    "x": 371,
+    "x": 128,
     "y": 161,
     "size": 6,
     "color": null
    },
    {
-    "x": 338,
+    "x": 161,
     "y": 128,
+    "size": 6,
+    "color": null
+   },
+   {
+    "x": 203,
+    "y": 107,
+    "size": 6,
+    "color": null
+   },
+   {
+    "x": 249,
+    "y": 100,
     "size": 6,
     "color": null
    },
@@ -66,61 +78,49 @@
     "color": null
    },
    {
-    "x": 250,
-    "y": 100,
-    "size": 6,
-    "color": null
-   },
-   {
-    "x": 203,
-    "y": 107,
-    "size": 6,
-    "color": null
-   },
-   {
-    "x": 161,
+    "x": 338,
     "y": 128,
     "size": 6,
     "color": null
    },
    {
-    "x": 128,
+    "x": 371,
     "y": 161,
     "size": 6,
     "color": null
    },
    {
-    "x": 107,
+    "x": 392,
     "y": 203,
     "size": 6,
     "color": null
    },
    {
-    "x": 100,
+    "x": 400,
     "y": 249,
     "size": 6,
     "color": null
    },
    {
-    "x": 107,
+    "x": 392,
     "y": 296,
     "size": 6,
     "color": null
    },
    {
-    "x": 128,
+    "x": 371,
     "y": 338,
     "size": 6,
     "color": null
    },
    {
-    "x": 161,
+    "x": 338,
     "y": 371,
     "size": 6,
     "color": null
    },
    {
-    "x": 203,
+    "x": 296,
     "y": 392,
     "size": 6,
     "color": null
@@ -159,32 +159,32 @@
    ]
   },
   {
-   "color": "green",
+   "color": "yellow",
    "entry": 5,
    "slots": [
     {
-     "x": 450,
-     "y": 287,
-     "size": 6,
-     "color": "green"
-    },
-    {
-     "x": 450,
-     "y": 262,
-     "size": 6,
-     "color": "green"
-    },
-    {
-     "x": 450,
-     "y": 237,
-     "size": 6,
-     "color": "green"
-    },
-    {
-     "x": 450,
+     "x": 50,
      "y": 212,
      "size": 6,
-     "color": "green"
+     "color": "yellow"
+    },
+    {
+     "x": 50,
+     "y": 237,
+     "size": 6,
+     "color": "yellow"
+    },
+    {
+     "x": 50,
+     "y": 262,
+     "size": 6,
+     "color": "yellow"
+    },
+    {
+     "x": 50,
+     "y": 287,
+     "size": 6,
+     "color": "yellow"
     }
    ]
   },
@@ -206,45 +206,45 @@
     },
     {
      "x": 237,
-     "y": 49,
+     "y": 50,
      "size": 6,
      "color": "blue"
     },
     {
      "x": 212,
-     "y": 49,
+     "y": 50,
      "size": 6,
      "color": "blue"
     }
    ]
   },
   {
-   "color": "yellow",
+   "color": "green",
    "entry": 15,
    "slots": [
     {
-     "x": 50,
-     "y": 212,
-     "size": 6,
-     "color": "yellow"
-    },
-    {
-     "x": 50,
-     "y": 237,
-     "size": 6,
-     "color": "yellow"
-    },
-    {
-     "x": 49,
-     "y": 262,
-     "size": 6,
-     "color": "yellow"
-    },
-    {
-     "x": 49,
+     "x": 450,
      "y": 287,
      "size": 6,
-     "color": "yellow"
+     "color": "green"
+    },
+    {
+     "x": 450,
+     "y": 262,
+     "size": 6,
+     "color": "green"
+    },
+    {
+     "x": 450,
+     "y": 237,
+     "size": 6,
+     "color": "green"
+    },
+    {
+     "x": 450,
+     "y": 212,
+     "size": 6,
+     "color": "green"
     }
    ]
   }
@@ -281,29 +281,29 @@
    ]
   },
   {
-   "color": "green",
+   "color": "yellow",
    "entry": 25,
    "slots": [
     {
-     "x": 370,
+     "x": 130,
      "y": 250,
      "size": 6,
      "color": null
     },
     {
-     "x": 345,
+     "x": 155,
      "y": 250,
      "size": 6,
      "color": null
     },
     {
-     "x": 320,
+     "x": 180,
      "y": 250,
      "size": 6,
      "color": null
     },
     {
-     "x": 295,
+     "x": 205,
      "y": 250,
      "size": 6,
      "color": null
@@ -315,25 +315,25 @@
    "entry": 30,
    "slots": [
     {
-     "x": 250,
+     "x": 249,
      "y": 130,
      "size": 6,
      "color": null
     },
     {
-     "x": 250,
+     "x": 249,
      "y": 155,
      "size": 6,
      "color": null
     },
     {
-     "x": 250,
+     "x": 249,
      "y": 180,
      "size": 6,
      "color": null
     },
     {
-     "x": 250,
+     "x": 249,
      "y": 205,
      "size": 6,
      "color": null
@@ -341,29 +341,29 @@
    ]
   },
   {
-   "color": "yellow",
+   "color": "green",
    "entry": 35,
    "slots": [
     {
-     "x": 130,
+     "x": 370,
      "y": 249,
      "size": 6,
      "color": null
     },
     {
-     "x": 155,
+     "x": 345,
      "y": 249,
      "size": 6,
      "color": null
     },
     {
-     "x": 180,
+     "x": 320,
      "y": 249,
      "size": 6,
      "color": null
     },
     {
-     "x": 205,
+     "x": 295,
      "y": 249,
      "size": 6,
      "color": null

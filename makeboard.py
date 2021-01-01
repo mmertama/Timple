@@ -27,7 +27,7 @@ class Ring:
             xx = math.sin(r) * rad
             yy = math.cos(r) * rad
             self.slots.append(Slot(xx + x, yy + y, size))
-            r += step
+            r -= step
 
     def data(self):
         return {'x': self.x,
@@ -91,20 +91,21 @@ def main():
     ring = Ring(250, 250, 150, ball_rad, ring_count)
     starts = []
 
-    colors = ["red", "green", "blue", "yellow"]
+    colors = ["red", "yellow", "blue", "green"]
     entry = 0
 
     for a in range(0, 4):
         starts.append(Start(250, 250,
-                            a * (math.pi / 2)
-                            , 200, 100, ball_rad, 4, math.pi / 2, colors[a], entry))
+                            a * (-math.pi / 2),
+                            200, 100, ball_rad, 4, math.pi / 2, colors[a], entry))
         entry += ring_count / 4
 
     goals = []
     entry = ring_count
     for a in range(0, 4):
         goals.append(Goal(250, 250,
-                          a * (math.pi / 2), 20, 100, ball_rad, 4, 0, colors[a], entry))
+                          a * (-math.pi / 2),
+                          20, 100, ball_rad, 4, 0, colors[a], entry))
         entry += ring_count / 4
 
     data = encoder.encode({'width': 500,
