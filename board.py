@@ -16,6 +16,8 @@ DIE_1 = 9856
 # Seconds to show the current die value, when not waiting for user
 DICE_WAIT = 1.5
 
+isometric_draw = False
+
 
 # A peg goes in slot
 class Peg:
@@ -26,7 +28,7 @@ class Peg:
 
     def draw(self, frame):
         frame.begin_path()
-        frame.arc(self.slot.x, self.slot.y, self.slot.size, 0, 2 * math.pi)
+        self.slot.draw_ellipse(frame)
         frame.fill_style(self.color)
         frame.fill()
 
@@ -48,22 +50,32 @@ class Slot:
         self.color = color
         self.owner = owner
         self.hilit = False
+        self.isometric = True
+
+    def draw_ellipse(self, frame):
+        if isometric_draw:
+            frame.save()
+            frame.scale(1, 0.5)
+            frame.arc(self.x, self.y, self.size, 0, 2 * math.pi)
+            frame.restore()
+        else:
+            frame.arc(self.x, self.y, self.size, 0, 2 * math.pi)
 
     def draw(self, frame):
         frame.begin_path()
-        frame.arc(self.x, self.y, self.size, 0, 2 * math.pi)
+        self.draw_ellipse(frame)
         frame.stroke_style(self.color)
         frame.stroke()
 
         if self.hilit:
             frame.begin_path()
-            frame.arc(self.x, self.y, self.size * 2, 0, 2 * math.pi)
+            self.draw_ellipse(frame)
             frame.fill_style('#1B1B1B2F')
             frame.fill()
 
         if self.selected:
             frame.begin_path()
-            frame.arc(self.x, self.y, self.size * 2, 0, 2 * math.pi)
+            self.draw_ellipse(frame)
             frame.stroke_style('#2F2F2F')
             frame.stroke()
 
@@ -210,7 +222,7 @@ class Game:
         assert self.state == self.PICK_MOVER
         self.selected = None
         slot = self.slot_at(x, y)
-        print("hit at", slot, slot.peg.color if slot.peg else "EMpty")
+        print("hit at", slot, slot.peg.color if slot and slot.peg else "Empty")
         if slot and slot.peg and slot.peg.color == self.current_player().color:
             target = self.target_slot(slot)
             if not target:
@@ -329,6 +341,11 @@ class Game:
     def get_activated(self):
         return [s for s in self.ring.slots if s.selected] + [s for s in self.current_start().slots if s.selected]
 
+    @staticmethod
+    def set_draw_mode(mode):
+        global isometric_draw
+        isometric_draw = True if mode == 'isometric' else False
+
 
 AUTO_PLAY_ON = 1
 AUTO_PLAY_PENDING = 2
@@ -337,7 +354,7 @@ AUTO_PLAY_DECIDE = 4
 
 def main():
     # This soils console with internal stuff
-    # Gempyre.set_debug()
+    Gempyre.set_debug(Gempyre.DebugLevel.NoDebug)
     # Just print a greeting to file
     print("Using Gempyre " + str(Gempyre.version()))
 
@@ -351,7 +368,7 @@ def main():
     start = Gempyre.Element(ui, "start")
     instructions = Gempyre.Element(ui, "instructions")
     restart = Gempyre.Element(ui, "restart")
-
+    draw_mode = Gempyre.Element(ui, "drawing")
 
     # Read game data file
     with open("gui/data.json", 'r') as f:
@@ -399,14 +416,16 @@ def main():
     # Auto play state
     auto_play_state = 0
 
-
     # ...and have a function to read it
-    def get_rect():
+    def on_open():
         nonlocal canvas_rect
         canvas_rect = canvas.rect()
+        # Set initial draw mode upon UI
+        game.set_draw_mode(draw_mode.values()['value'])
+
     # ... of which we call upon start, note that we set position absolute in HTML,
     # otherwise these rect may not be valid if page content changes
-    ui.on_open(get_rect)
+    ui.on_open(on_open)
 
     # Function that wipes previous draw and draw a new frame
     def redraw():
@@ -482,7 +501,7 @@ def main():
         if Gempyre.Element(ui, 'auto_start').values()['checked'] == 'true':
             start_auto_play()
 
-    # Subscribe The start button.
+    # Subscribe the start button.
     start.subscribe('click', on_start)
 
     # Function called when next throw is expected.
@@ -533,8 +552,11 @@ def main():
         # Only if a correct state
         if game.state == game.PICK_MOVER:
             # Get a slot that match with the event coordinates.
-            x = float(e.properties['clientX']) - canvas_rect.x
-            y = float(e.properties['clientY']) - canvas_rect.y
+            x = float(e.properties['clientX'])
+            y = float(e.properties['clientY'])
+            x -= canvas_rect.x
+            y -= canvas_rect.y
+            y = y * 2 if isometric_draw else y
             target = game.slot_at(x, y)
             if target and target.peg and target.peg.color == game.current_player().color:
                 slot = game.target_slot(target)
@@ -603,7 +625,13 @@ def main():
         restart.set_attribute('hidden')
         redraw()
 
+    def on_set_draw_mode(_):
+        game.set_draw_mode(draw_mode.values()['value'])
+        redraw()
+
     restart.subscribe('click', on_reset)
+
+    draw_mode.subscribe('change', on_set_draw_mode)
 
     # Start the UI, the function wont return until application exits.
     ui.run()
