@@ -354,7 +354,7 @@ AUTO_PLAY_DECIDE = 4
 
 def main():
     # This soils console with internal stuff
-    Gempyre.set_debug(Gempyre.DebugLevel.NoDebug)
+    # Gempyre.set_debug(Gempyre.DebugLevel.Debug)
     # Just print a greeting to file
     print("Using Gempyre " + str(Gempyre.version()))
 
