@@ -6,6 +6,7 @@ import random                   # for dice values
 import functools                # for some utility functions
 from datetime import timedelta  # for time periods
 import Gempyre                  # for UI
+from Gempyre_utils import resource
 
 # The mouse click radius outside drawing radius
 FEATHER = 10
@@ -206,6 +207,7 @@ class Game:
         self.players = []
         self.player_turn = 0
         self.help = help_function
+        self.is_new_ring = False
         self.selected = None
 
     def draw(self, frame_composer):
@@ -223,7 +225,8 @@ class Game:
         self.selected = None
         slot = self.slot_at(x, y)
         print("hit at", slot, slot.peg.color if slot and slot.peg else "Empty")
-        if slot and slot.peg and slot.peg.color == self.current_player().color:
+        if slot and slot.peg and slot.peg.color == self.current_player().color and (
+                self.is_new_ring or slot.owner == self.ring):
             target = self.target_slot(slot)
             if not target:
                 return False
@@ -277,6 +280,7 @@ class Game:
         return True
 
     def dice_thrown(self, value):
+        self.is_new_ring = value == self.NEW_RING
         self.players[self.player_turn].current_dice = value
         if self.state == self.SELECT_STARTER:
             self.turn_inc()
@@ -285,13 +289,6 @@ class Game:
                 self.state = self.NEXT_TURN
                 self.player_turn = 0
                 self.help(self.current_player().name.capitalize() + " will start the game!")
-                # this is different than in Kimble
-                for p in self.players:
-                    if p.name:
-                        start = self.starts[p.color]
-                        s = start.slots[0]
-                        t = self.ring.slots[start.entry]
-                        s.move(t, 0)
             else:
                 self.help(self.current_player().name.capitalize() + " throws the dice to see who will be the first.")
             return True
@@ -356,11 +353,17 @@ def main():
     # This soils console with internal stuff
     # Gempyre.set_debug(Gempyre.DebugLevel.Debug)
     # Just print a greeting to file
+
     print("Using Gempyre " + str(Gempyre.version()))
 
     # Construct a Gempyre::Ui
     ui_file = 'gui/timple.html'
-    ui = Gempyre.Ui(ui_file)
+    file_map, names = resource.from_file(ui_file, 'gui/favicon.ico')
+    print(names[ui_file], names[ui_file] == '/timple.html', "names:", names, file_map)
+    ui = Gempyre.Ui(file_map, '/timple.html', Gempyre.os_browser())
+
+    foo = ui.resource('/timple.html')
+    print("html:", ''.join([chr(x) for x in foo]))
 
     # Then get needed UI components
     canvas = Gempyre.CanvasElement(ui, "canvas")
@@ -412,6 +415,8 @@ def main():
 
     # A slot that holds current target slot (when choosing one)
     hilit_slot = None
+
+    is_new_ring = False
 
     # Auto play state
     auto_play_state = 0
@@ -534,7 +539,7 @@ def main():
         dice.set_html('&#' + str(DIE_1 + number) + ';')
         # We tell that to game and see if next throw will be ok soon (show a glimpse of current value first)
         if game.dice_thrown(number + 1):
-            print ("start nix timer")
+            print("start nix timer")
             ui.start_timer(timedelta(seconds=DICE_WAIT), True, next_dice)
         else:
             assert game.state == game.PICK_MOVER
@@ -558,7 +563,8 @@ def main():
             y -= canvas_rect.y
             y = y * 2 if isometric_draw else y
             target = game.slot_at(x, y)
-            if target and target.peg and target.peg.color == game.current_player().color:
+            if target and target.peg and target.peg.color == game.current_player().color and (
+                    game.is_new_ring or target.owner == game.ring):
                 slot = game.target_slot(target)
                 # Erase old hi-light graphics, if set
                 if hilit_slot:
@@ -639,4 +645,5 @@ def main():
 
 # Python app entry point done nicely
 if __name__ == "__main__":
+    #Gempyre.set_debug(Gempyre.DebugLevel.Debug_Trace)
     main()
