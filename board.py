@@ -239,6 +239,8 @@ class Game:
             else:
                 slot.move(target, self.current_player().current_dice)
             self.state = self.NEXT_TURN
+            if self.is_new_ring:
+                return True
             return self.turn_inc()
         return False
 
@@ -318,13 +320,13 @@ class Game:
         if slot.owner == self.ring:
             slot_count = len(self.ring.slots)
             target_pos = slot.peg.position + self.current_player().current_dice
-            if target_pos <= slot_count:
+            if target_pos < slot_count:
                 position = (target_pos + self.current_start().entry) % slot_count
                 if not self.ring.slots[position].peg or self.ring.slots[position].peg.color != self.current_color():
                     return self.ring.slots[position]
             # It tries to go goal
             else:
-                goal_position = (target_pos - slot_count) - 1
+                goal_position = target_pos - slot_count
                 # if we can fit it in
                 if goal_position < len(self.current_goal().slots) and not self.current_goal().slots[goal_position].peg:
                     return self.current_goal().slots[goal_position]
@@ -350,7 +352,7 @@ AUTO_PLAY_DECIDE = 4
 
 
 def main():
-    # This soils console with internal stuff
+    # soils console with internal stuff
     # Gempyre.set_debug(Gempyre.DebugLevel.Debug)
     # Just print a greeting to file
 
@@ -358,12 +360,12 @@ def main():
 
     # Construct a Gempyre::Ui
     ui_file = 'gui/timple.html'
-    file_map, names = resource.from_file(ui_file, 'gui/favicon.ico')
+    file_map, names = resource.from_file(ui_file, 'gui/favicon.ico', 'gui/hyppy.ogg')
     print(names[ui_file], names[ui_file] == '/timple.html', "names:", names, file_map)
     ui = Gempyre.Ui(file_map, '/timple.html', Gempyre.os_browser())
 
-    foo = ui.resource('/timple.html')
-    print("html:", ''.join([chr(x) for x in foo]))
+    # foo = ui.resource('/timple.html')
+    # print("html:", ''.join([chr(x) for x in foo]))
 
     # Then get needed UI components
     canvas = Gempyre.CanvasElement(ui, "canvas")
@@ -372,6 +374,10 @@ def main():
     instructions = Gempyre.Element(ui, "instructions")
     restart = Gempyre.Element(ui, "restart")
     draw_mode = Gempyre.Element(ui, "drawing")
+
+    # add audio
+    audio = Gempyre.Element(ui, 'audio', ui.root())
+    audio.set_attribute('src', 'hyppy.ogg')
 
     # Read game data file
     with open("gui/data.json", 'r') as f:
@@ -464,7 +470,7 @@ def main():
                 on_click(event)
 
             print("throw")
-            throw_dice(None)
+            throw_dice(random.randint(0, 5))
             if game.state == game.PICK_MOVER:
                 if game.selected and len(game.selected) == 1:
                     print("clicx")
@@ -529,12 +535,11 @@ def main():
             start_auto_play()
 
     # Function called when dice will be thrown.
-    def throw_dice(_):
+    def throw_dice(number):
         nonlocal next_dice_ok
         if not next_dice_ok:
             return
-        # Get a random die number
-        number = random.randint(0, 5)
+
         # Set HTML Unicode icon to reflect the die value
         dice.set_html('&#' + str(DIE_1 + number) + ';')
         # We tell that to game and see if next throw will be ok soon (show a glimpse of current value first)
@@ -548,7 +553,14 @@ def main():
         redraw()
 
     # Subscribe a button
-    dice.subscribe('click', throw_dice)
+    dice.subscribe('click', lambda _: throw_dice(random.randint(0, 5)))
+
+    def key_down(event):
+        code = chr(int(float(event.properties['keyCode'])))  # Gempyre returns numbers as float
+        if (game.state == game.SELECT_STARTER or game.state == game.NEXT_TURN) and '1' <= code <= '6':
+            throw_dice(ord(code) - ord('1'))
+
+    ui.root().subscribe('keydown', key_down, ['keyCode'])
 
     # Function that shows targets
     def show_targets(e):
@@ -600,6 +612,7 @@ def main():
         print("clicking")
         if game.clicked(x, y):
             print("next")
+            ui.eval('document.getElementById("' + audio.id() + '").play();')
             next_dice()
         elif game.state == game.GAME_OVER:
             restart.remove_attribute('hidden')

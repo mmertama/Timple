@@ -251,60 +251,30 @@
  ],
  "goals": [
   {
-   "color": "red",
+   "color": "green",
    "entry": 20,
    "slots": [
     {
-     "x": 250,
-     "y": 370,
+     "x": 370,
+     "y": 249,
      "size": 6,
      "color": null
     },
     {
-     "x": 250,
-     "y": 345,
+     "x": 345,
+     "y": 249,
      "size": 6,
      "color": null
     },
     {
-     "x": 250,
-     "y": 320,
+     "x": 320,
+     "y": 249,
      "size": 6,
      "color": null
     },
     {
-     "x": 250,
-     "y": 295,
-     "size": 6,
-     "color": null
-    }
-   ]
-  },
-  {
-   "color": "yellow",
-   "entry": 25,
-   "slots": [
-    {
-     "x": 130,
-     "y": 250,
-     "size": 6,
-     "color": null
-    },
-    {
-     "x": 155,
-     "y": 250,
-     "size": 6,
-     "color": null
-    },
-    {
-     "x": 180,
-     "y": 250,
-     "size": 6,
-     "color": null
-    },
-    {
-     "x": 205,
-     "y": 250,
+     "x": 295,
+     "y": 249,
      "size": 6,
      "color": null
     }
@@ -312,7 +282,7 @@
   },
   {
    "color": "blue",
-   "entry": 30,
+   "entry": 25,
    "slots": [
     {
      "x": 249,
@@ -341,30 +311,60 @@
    ]
   },
   {
-   "color": "green",
+   "color": "yellow",
+   "entry": 30,
+   "slots": [
+    {
+     "x": 130,
+     "y": 250,
+     "size": 6,
+     "color": null
+    },
+    {
+     "x": 155,
+     "y": 250,
+     "size": 6,
+     "color": null
+    },
+    {
+     "x": 180,
+     "y": 250,
+     "size": 6,
+     "color": null
+    },
+    {
+     "x": 205,
+     "y": 250,
+     "size": 6,
+     "color": null
+    }
+   ]
+  },
+  {
+   "color": "red",
    "entry": 35,
    "slots": [
     {
-     "x": 370,
-     "y": 249,
+     "x": 250,
+     "y": 370,
      "size": 6,
      "color": null
     },
     {
-     "x": 345,
-     "y": 249,
+     "x": 250,
+     "y": 345,
      "size": 6,
      "color": null
     },
     {
-     "x": 320,
-     "y": 249,
+     "x": 250,
+     "y": 320,
      "size": 6,
      "color": null
     },
     {
-     "x": 295,
-     "y": 249,
+     "x": 250,
+     "y": 295,
      "size": 6,
      "color": null
     }
