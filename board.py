@@ -362,7 +362,7 @@ def main():
     ui_file = 'gui/timple.html'
     file_map, names = resource.from_file(ui_file, 'gui/favicon.ico', 'gui/hyppy.ogg')
     print(names[ui_file], names[ui_file] == '/timple.html', "names:", names, file_map)
-    ui = Gempyre.Ui(file_map, '/timple.html', Gempyre.os_browser())
+    ui = Gempyre.Ui(file_map, '/timple.html')
 
     # foo = ui.resource('/timple.html')
     # print("html:", ''.join([chr(x) for x in foo]))
@@ -484,7 +484,7 @@ def main():
                     ui.stop_timer(tid)
             print("auto play", game.state, auto_play_state)
 
-        ui.start_timer_id(timedelta(seconds=1), False, auto_play)
+        ui.start_periodic_id(timedelta(seconds=1), auto_play)
 
     # Function called when a Start button is clicked.
     def on_start(_):
@@ -525,7 +525,7 @@ def main():
         # Set color to match with thrower.
         dice.set_style('background-color', game.current_color())
         # Next throw will be ok
-        print("niext", game.state)
+        print("next", game.state)
         if game.state == game.GAME_OVER:
             return
         next_dice_ok = True
@@ -545,7 +545,7 @@ def main():
         # We tell that to game and see if next throw will be ok soon (show a glimpse of current value first)
         if game.dice_thrown(number + 1):
             print("start nix timer")
-            ui.start_timer(timedelta(seconds=DICE_WAIT), True, next_dice)
+            ui.after(timedelta(seconds=DICE_WAIT), next_dice)
         else:
             assert game.state == game.PICK_MOVER
         next_dice_ok = False
